@@ -63,7 +63,7 @@ export async function calculateCardProgress(cardId: string): Promise<number> {
   return progress
 }
 
-async function updateCardStatusAndProgress(cardId: string, userId: string): Promise<void> {
+export async function updateCardStatusAndProgress(cardId: string, userId: string): Promise<void> {
   const progress = await calculateCardProgress(cardId)
 
   let newStatus: string

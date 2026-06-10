@@ -15,10 +15,10 @@ import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
 
 const NAV_ITEMS = [
-  { to: '/', label: '同步墙', icon: LayoutDashboard },
-  { to: '/cards', label: '功能卡片', icon: CreditCard },
-  { to: '/assets', label: '素材管理', icon: Image },
-  { to: '/webhooks', label: 'Webhook', icon: GitBranch },
+  { to: '/', label: '同步墙', icon: LayoutDashboard, end: true },
+  { to: '/', label: '功能卡片', icon: CreditCard, end: false },
+  { to: '/assets', label: '素材管理', icon: Image, end: false },
+  { to: '/webhooks', label: 'Webhook', icon: GitBranch, end: false },
 ]
 
 const ROLE_COLORS: Record<string, string> = {
@@ -82,11 +82,11 @@ export default function Layout() {
 
         {/* Nav */}
         <nav className="mt-2 flex-1 space-y-1 px-3">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
             <NavLink
-              key={to}
+              key={label}
               to={to}
-              end={to === '/'}
+              end={end}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${

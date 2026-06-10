@@ -11,11 +11,16 @@ router.post('/:cardId/comments', async (req: Request, res: Response): Promise<vo
   try {
     const { cardId } = req.params
     const { content, parentCommentId } = req.body
-    const userId = (req as any).user.userId
-    const teamId = (req as any).user.teamId
+    const userId = req.user!.id
+    const teamId = req.user!.team_id
 
     if (!content) {
       res.status(400).json({ success: false, error: 'Content is required' })
+      return
+    }
+
+    if (!teamId) {
+      res.status(400).json({ success: false, error: 'User has no team' })
       return
     }
 
@@ -106,8 +111,8 @@ router.put('/comments/:id/reply', async (req: Request, res: Response): Promise<v
   try {
     const { id } = req.params
     const { content } = req.body
-    const userId = (req as any).user.userId
-    const teamId = (req as any).user.teamId
+    const userId = req.user!.id
+    const teamId = req.user!.team_id
 
     if (!content) {
       res.status(400).json({ success: false, error: 'Content is required' })
@@ -165,9 +170,9 @@ router.put('/comments/:id/reply', async (req: Request, res: Response): Promise<v
 router.put('/comments/:id/confirm', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params
-    const userId = (req as any).user.userId
-    const teamId = (req as any).user.teamId
-    const userRole = (req as any).user.role
+    const userId = req.user!.id
+    const teamId = req.user!.team_id
+    const userRole = req.user!.role
 
     if (userRole !== 'planner') {
       res.status(403).json({ success: false, error: 'Only planners can confirm comments' })
@@ -207,7 +212,7 @@ router.put('/comments/:id/confirm', async (req: Request, res: Response): Promise
 
 router.get('/pending', async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user.userId
+    const userId = req.user!.id
 
     const result = await query(
       `SELECT c.*, u.name as author_name, u.role as author_role,

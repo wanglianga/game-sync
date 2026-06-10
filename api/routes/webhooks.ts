@@ -4,15 +4,15 @@ import { v4 as uuidv4 } from 'uuid'
 import { query } from '../db.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { notifyTeam } from '../services/notification.js'
-import { calculateCardProgress } from './cards.js'
+import { updateCardStatusAndProgress } from './cards.js'
 
 const router = Router()
 
 router.post('/config', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { repoUrl } = req.body
-    const userId = (req as any).user.userId
-    const teamId = (req as any).user.teamId
+    const userId = req.user!.id
+    const teamId = req.user!.team_id
 
     if (!repoUrl) {
       res.status(400).json({ success: false, error: 'repoUrl is required' })
@@ -37,7 +37,7 @@ router.post('/config', authMiddleware, async (req: Request, res: Response): Prom
 
 router.get('/config', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const teamId = (req as any).user.teamId
+    const teamId = req.user!.team_id
 
     const result = await query(
       `SELECT id, team_id, created_by, repo_url, created_at FROM webhook_configs WHERE team_id = $1 ORDER BY created_at DESC`,
@@ -54,7 +54,7 @@ router.get('/config', authMiddleware, async (req: Request, res: Response): Promi
 router.delete('/config/:id', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params
-    const teamId = (req as any).user.teamId
+    const teamId = req.user!.team_id
 
     const result = await query(
       `DELETE FROM webhook_configs WHERE id = $1 AND team_id = $2 RETURNING id`,
@@ -163,7 +163,7 @@ router.post('/git/:configId', async (req: Request, res: Response): Promise<void>
     }
 
     for (const cardId of linkedCardIds) {
-      await calculateCardProgress(cardId)
+      await updateCardStatusAndProgress(cardId, config.created_by)
       await notifyTeam(
         config.team_id,
         config.created_by,
@@ -183,7 +183,7 @@ router.post('/git/:configId', async (req: Request, res: Response): Promise<void>
 
 router.get('/events', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const teamId = (req as any).user.teamId
+    const teamId = req.user!.team_id
 
     const result = await query(
       `SELECT we.*, wc.repo_url

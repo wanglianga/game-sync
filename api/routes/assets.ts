@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { query } from '../db.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { notifyTeam } from '../services/notification.js'
-import { calculateCardProgress } from './cards.js'
+import { updateCardStatusAndProgress } from './cards.js'
 
 const router = Router()
 
@@ -33,8 +33,8 @@ const upload = multer({ storage })
 
 router.post('/upload', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user.userId
-    const teamId = (req as any).user.teamId
+    const userId = req.user!.id
+    const teamId = req.user!.team_id
 
     if (!req.file) {
       res.status(400).json({ success: false, error: 'File is required' })
@@ -79,7 +79,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
         cardId,
       )
 
-      await calculateCardProgress(cardId)
+      await updateCardStatusAndProgress(cardId, userId)
     }
 
     asset.card_ids = cardIds
@@ -93,7 +93,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
 
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const teamId = (req as any).user.teamId
+    const teamId = req.user!.team_id
 
     const result = await query(
       `SELECT a.*, u.name as uploader_name
@@ -124,7 +124,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params
-    const teamId = (req as any).user.teamId
+    const teamId = req.user!.team_id
 
     const result = await query(
       `SELECT a.*, u.name as uploader_name
@@ -158,8 +158,8 @@ router.put('/:id/confirm', async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params
     const { cardId } = req.body
-    const teamId = (req as any).user.teamId
-    const userId = (req as any).user.userId
+    const teamId = req.user!.team_id
+    const userId = req.user!.id
 
     if (!cardId) {
       res.status(400).json({ success: false, error: 'cardId is required' })
@@ -180,7 +180,7 @@ router.put('/:id/confirm', async (req: Request, res: Response): Promise<void> =>
       [id, cardId],
     )
 
-    await calculateCardProgress(cardId)
+    await updateCardStatusAndProgress(cardId, userId)
 
     await notifyTeam(
       teamId,
@@ -201,9 +201,9 @@ router.put('/:id/confirm', async (req: Request, res: Response): Promise<void> =>
 router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params
-    const userId = (req as any).user.userId
-    const teamId = (req as any).user.teamId
-    const userRole = (req as any).user.role
+    const userId = req.user!.id
+    const teamId = req.user!.team_id
+    const userRole = req.user!.role
 
     const assetResult = await query(
       `SELECT * FROM assets WHERE id = $1 AND team_id = $2`,
@@ -237,7 +237,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     }
 
     for (const cardId of linkedCardIds) {
-      await calculateCardProgress(cardId)
+      await updateCardStatusAndProgress(cardId, userId)
     }
 
     res.json({ success: true, message: 'Asset deleted' })

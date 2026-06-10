@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
+import { useNotificationStore } from '@/store/notifications'
 import { api } from '@/lib/api'
 import type { UserRole } from '../../shared/types'
 
@@ -8,23 +9,30 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [inviteCode, setInviteCode] = useState('DEMO2024')
   const [role, setRole] = useState<UserRole>('planner')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const login = useAuthStore((s) => s.login)
+  const connectWS = useNotificationStore((s) => s.connectWS)
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
     try {
       const res = await api.post<{ token: string; user: Parameters<typeof login>[1] }>(
         '/auth/register',
-        { name, email, password, role }
+        { name, email, password, role, inviteCode }
       )
       login(res.token, res.user)
+      connectWS(res.token)
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -101,11 +109,23 @@ export default function Register() {
               ))}
             </div>
           </div>
+          <div>
+            <label className="mb-1 block text-sm text-[var(--text-secondary)]">邀请码</label>
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              required
+              placeholder="输入团队邀请码"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-tertiary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+            />
+          </div>
           <button
             type="submit"
-            className="w-full rounded-lg bg-[var(--accent)] py-2.5 text-sm font-semibold text-[var(--bg-primary)] transition-colors hover:bg-[var(--accent-dim)]"
+            disabled={loading}
+            className="w-full rounded-lg bg-[var(--accent)] py-2.5 text-sm font-semibold text-[var(--bg-primary)] transition-colors hover:bg-[var(--accent-dim)] disabled:opacity-50"
           >
-            注册
+            {loading ? '注册中...' : '注册'}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-[var(--text-muted)]">
