@@ -16,6 +16,7 @@ import cardRoutes from './routes/cards.js'
 import commentRoutes from './routes/comments.js'
 import assetRoutes from './routes/assets.js'
 import webhookRoutes from './routes/webhooks.js'
+import reportRoutes from './routes/reports.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,6 +35,7 @@ app.use('/api/cards', cardRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/assets', assetRoutes)
 app.use('/api/webhooks', webhookRoutes)
+app.use('/api/reports', reportRoutes)
 
 /**
  * health

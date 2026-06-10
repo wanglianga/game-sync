@@ -8,6 +8,7 @@ import CardDetail from '@/pages/CardDetail'
 import NewCard from '@/pages/NewCard'
 import Assets from '@/pages/Assets'
 import Webhooks from '@/pages/Webhooks'
+import Reports from '@/pages/Reports'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="card/:id" element={<CardDetail />} />
           <Route path="assets" element={<Assets />} />
           <Route path="webhooks" element={<Webhooks />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
       </Routes>
     </Router>

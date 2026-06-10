@@ -148,3 +148,42 @@ export interface StatusHistory {
   triggered_by_name?: string
   created_at: string
 }
+
+export interface PlannerReportData {
+  newCardsThisWeek: Card[]
+  pendingReviewCards: Card[]
+  overdueUnconfirmedComments: Comment[]
+}
+
+export interface ProgrammerReportData {
+  prLinkedCards: (Card & { commits: Commit[] })[]
+  returnedPRs: (Card & { commits: Commit[] })[]
+  waitingForAssetsCards: Card[]
+}
+
+export interface ArtistReportData {
+  assetsReferencedCards: (Card & { assets: Asset[] })[]
+  pendingConfirmAssets: (Card & { assets: Asset[] })[]
+  requirementChangedCards: Card[]
+}
+
+export interface WeeklyReportSnapshot {
+  planner?: PlannerReportData
+  programmer?: ProgrammerReportData
+  artist?: ArtistReportData
+  generated_at: string
+  week_start: string
+  week_end: string
+}
+
+export interface WeeklyReport {
+  id: string
+  team_id: string
+  user_id: string
+  role: UserRole
+  week_start: string
+  week_end: string
+  snapshot: WeeklyReportSnapshot
+  created_at: string
+  updated_at: string
+}

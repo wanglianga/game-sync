@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Plus,
+  FileBarChart,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { to: '/', label: '功能卡片', icon: CreditCard, end: false },
   { to: '/assets', label: '素材管理', icon: Image, end: false },
   { to: '/webhooks', label: 'Webhook', icon: GitBranch, end: false },
+  { to: '/reports', label: '周报快照', icon: FileBarChart, end: false },
 ]
 
 const ROLE_COLORS: Record<string, string> = {
