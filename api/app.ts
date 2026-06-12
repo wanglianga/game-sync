@@ -17,6 +17,7 @@ import commentRoutes from './routes/comments.js'
 import assetRoutes from './routes/assets.js'
 import webhookRoutes from './routes/webhooks.js'
 import reportRoutes from './routes/reports.js'
+import notificationRoutes from './routes/notifications.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -36,6 +37,7 @@ app.use('/api/comments', commentRoutes)
 app.use('/api/assets', assetRoutes)
 app.use('/api/webhooks', webhookRoutes)
 app.use('/api/reports', reportRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 /**
  * health

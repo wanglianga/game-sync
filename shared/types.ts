@@ -3,7 +3,7 @@ export type CardStatus = 'requirement' | 'development' | 'review' | 'done'
 export type Priority = 'low' | 'medium' | 'high'
 export type CommentStatus = 'open' | 'pending_confirm' | 'closed'
 export type AssetStatus = 'pending' | 'confirmed'
-export type NotificationType = 'card_status_changed' | 'asset_uploaded' | 'comment_added' | 'comment_confirmed' | 'pr_linked'
+export type NotificationType = 'card_status_changed' | 'asset_uploaded' | 'comment_added' | 'comment_confirmed' | 'pr_linked' | 'weekly_report_generated' | 'overdue_reminder'
 
 export interface User {
   id: string

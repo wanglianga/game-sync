@@ -2,7 +2,7 @@ import app from './app.js'
 import { runMigrations } from './migrate.js'
 import { connectRedis, disconnectRedis } from './redis.js'
 import { setupWebSocket } from './ws.js'
-import { startWeeklyReportScheduler, stopWeeklyReportScheduler } from './services/scheduler.js'
+import { startWeeklyReportScheduler, stopWeeklyReportScheduler, startOverdueNotificationScheduler, stopOverdueNotificationScheduler } from './services/scheduler.js'
 
 const PORT = process.env.PORT || 3001
 
@@ -19,10 +19,12 @@ async function start() {
 
     setupWebSocket(server)
     startWeeklyReportScheduler()
+    startOverdueNotificationScheduler()
 
     process.on('SIGTERM', () => {
       console.log('SIGTERM signal received')
       stopWeeklyReportScheduler()
+      stopOverdueNotificationScheduler()
       server.close(async () => {
         await disconnectRedis()
         console.log('Server closed')
@@ -33,6 +35,7 @@ async function start() {
     process.on('SIGINT', () => {
       console.log('SIGINT signal received')
       stopWeeklyReportScheduler()
+      stopOverdueNotificationScheduler()
       server.close(async () => {
         await disconnectRedis()
         console.log('Server closed')

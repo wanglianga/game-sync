@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   CreditCard,
@@ -11,6 +11,7 @@ import {
   X,
   Plus,
   FileBarChart,
+  Inbox,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { useNotificationStore } from '@/store/notifications'
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { to: '/assets', label: '素材管理', icon: Image, end: false },
   { to: '/webhooks', label: 'Webhook', icon: GitBranch, end: false },
   { to: '/reports', label: '周报快照', icon: FileBarChart, end: false },
+  { to: '/notifications', label: '信息流', icon: Inbox, end: false },
 ]
 
 const ROLE_COLORS: Record<string, string> = {
@@ -38,9 +40,26 @@ const ROLE_LABELS: Record<string, string> = {
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
+  const token = useAuthStore((s) => s.token)
   const logout = useAuthStore((s) => s.logout)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
+  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications)
+  const requestNotificationPermission = useNotificationStore((s) => s.requestNotificationPermission)
+  const connectWS = useNotificationStore((s) => s.connectWS)
+  const disconnectWS = useNotificationStore((s) => s.disconnectWS)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (user && token) {
+      fetchNotifications()
+      requestNotificationPermission()
+      connectWS(token)
+    }
+    return () => {
+      disconnectWS()
+    }
+  }, [user, token, fetchNotifications, requestNotificationPermission, connectWS, disconnectWS])
 
   const handleLogout = () => {
     logout()
@@ -162,7 +181,14 @@ export default function Layout() {
             </h1>
           </div>
 
-          <button className="relative rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]">
+          <button
+            onClick={() => navigate('/notifications')}
+            className={`relative rounded-lg p-2 transition-colors ${
+              location.pathname === '/notifications'
+                ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+            }`}
+          >
             <Bell size={20} />
             {unreadCount > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--danger)] px-1 text-[10px] font-bold text-white">

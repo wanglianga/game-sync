@@ -9,6 +9,7 @@ import NewCard from '@/pages/NewCard'
 import Assets from '@/pages/Assets'
 import Webhooks from '@/pages/Webhooks'
 import Reports from '@/pages/Reports'
+import Notifications from '@/pages/Notifications'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="assets" element={<Assets />} />
           <Route path="webhooks" element={<Webhooks />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
       </Routes>
     </Router>

@@ -1,4 +1,5 @@
 import { query } from '../db.js'
+import { createNotification } from './notification.js'
 import type {
   UserRole,
   WeeklyReportSnapshot,
@@ -371,6 +372,12 @@ export async function generateWeeklyReport(
   return snapshot
 }
 
+const ROLE_LABELS: Record<UserRole, string> = {
+  planner: '策划',
+  programmer: '程序',
+  artist: '美术',
+}
+
 export async function saveWeeklyReport(
   teamId: string,
   userId: string,
@@ -385,7 +392,18 @@ export async function saveWeeklyReport(
      RETURNING *`,
     [teamId, userId, role, snapshot.week_start, snapshot.week_end, JSON.stringify(snapshot)]
   )
-  return result.rows[0]
+  const report = result.rows[0]
+
+  const roleLabel = ROLE_LABELS[role] || role
+  await createNotification({
+    userId,
+    teamId,
+    type: 'weekly_report_generated',
+    title: `${roleLabel}周报已生成`,
+    message: `本周周报（${snapshot.week_start} 至 ${snapshot.week_end}）已生成，请查看。`,
+  })
+
+  return report
 }
 
 export async function getLatestWeeklyReport(teamId: string, userId: string): Promise<any | null> {

@@ -115,9 +115,9 @@ npm run server:dev
 
 ```
 ├── api/                    # 后端 API
-│   ├── routes/            # 路由（auth, cards, comments, assets, webhooks）
-│   ├── services/          # 业务服务（notification）
-│   ├── middleware/         # 中间件（auth, role）
+│   ├── routes/            # 路由（auth, cards, comments, assets, webhooks, reports, notifications）
+│   ├── services/          # 业务服务（notification, scheduler, weeklyReport）
+│   ├── middleware/         # 中间件（auth）
 │   ├── app.ts             # Express 应用配置
 │   ├── server.ts          # 服务器入口
 │   ├── db.ts              # PostgreSQL 连接池
@@ -125,14 +125,59 @@ npm run server:dev
 │   ├── ws.ts              # WebSocket 服务
 │   └── migrate.ts         # 数据库迁移
 ├── src/                    # 前端
-│   ├── pages/             # 页面组件
+│   ├── pages/             # 页面组件（Home, CardDetail, Assets, Webhooks, Reports, Notifications）
 │   ├── components/        # 公共组件
-│   ├── store/             # Zustand 状态管理
-│   ├── lib/               # 工具库（api 客户端）
+│   ├── store/             # Zustand 状态管理（auth, notifications）
+│   ├── lib/               # 工具库（api 客户端, utils）
 │   └── hooks/             # 自定义 Hooks
 ├── shared/                 # 前后端共享类型
-├── migrations/             # SQL 迁移脚本
+├── migrations/             # SQL 迁移脚本（003 周报, 004 演示数据, 005 通知逾期标记）
 ├── docker-compose.yml      # Docker 编排
 ├── Dockerfile              # Docker 构建
 └── .env.example            # 环境变量模板
 ```
+
+## 周报快照功能说明
+
+### 功能概述
+
+每周日自动为团队每个角色生成一份差异化周报快照。支持手动触发重新生成和导出 Markdown 格式。
+
+### 三个角色差异化视图
+
+| 角色 | 周报内容模块 |
+|------|--------------|
+| **策划** | ① 本周新增卡片 ② 待验收卡片（status=review）③ 逾期未确认评论（待确认超过3天） |
+| **程序** | ① 本周提交PR关联的卡片 ② 被退回的PR/卡片 ③ 等待素材的卡片（有提交但无确认素材） |
+| **美术** | ① 本周被引用素材的卡片 ② 待确认素材的卡片 ③ 需求变更的卡片（本周需求文档版本>1） |
+
+### 触发方式
+
+1. **自动触发**：服务器每小时检查一次，若当天是周日则自动为所有团队生成周报（每天最多执行一次）
+2. **手动触发-个人**：登录后进入「周报快照」页面，点击「重新生成我的周报」
+3. **手动触发-全团队**：策划角色可见「生成全团队周报」按钮，一键为所有团队成员重新生成
+
+### API 接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/reports/weekly/me` | 获取当前用户最新周报 |
+| GET | `/api/reports/weekly/team` | 获取本团队所有人周报（可传 `weekStart` / `weekEnd` 查询参数） |
+| POST | `/api/reports/weekly/generate` | 手动重新生成当前用户周报（body 可传 weekStart/weekEnd 指定周期） |
+| POST | `/api/reports/weekly/generate-all` | （仅策划）为全团队生成周报 |
+| GET | `/api/reports/weekly/:id/preview` | 预览某周报的 Markdown 内容 |
+| GET | `/api/reports/weekly/:id/export` | 下载某周报的 Markdown 文件 |
+
+### 演示验证步骤
+
+1. **注册三个角色账号**（或使用种子数据，首次 Docker 启动后可通过邀请码 `DEMO2024` 注册）
+   - 策划邮箱：`planner@demo.com`
+   - 程序邮箱：`dev1@demo.com` / `dev2@demo.com`
+   - 美术邮箱：`artist@demo.com`
+2. 登录任一账号 → 进入左侧导航「周报快照」
+3. 点击「重新生成我的周报」或策划点击「生成全团队周报」
+4. 在「团队周报」列表中依次预览三个角色的周报：
+   - **策划周报**显示：新增卡片(3)、待验收(2)、逾期评论(2)
+   - **程序周报**显示：PR关联卡片、被退回卡片、等素材卡片
+   - **美术周报**显示：素材引用卡片、待确认素材、需求变更卡片
+5. 点击「导出」下载对应的 `.md` 文件，验证 Markdown 结构
